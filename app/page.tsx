@@ -37,11 +37,11 @@ export default function Home() {
       if (data.success) {
         setResults(data.data.matches);
       } else {
-        alert("分析失败，请重试！");
+        alert("Analysis failed, please try again!");
       }
     } catch (error) {
       console.error(error);
-      alert("网络错误");
+      alert("Network Error");
     } finally {
       setIsLoading(false);
     }
@@ -57,29 +57,29 @@ export default function Home() {
             Bantu<span className="text-blue-600">AI</span> 🤝
           </h1>
           <p className="text-lg text-indigo-700 font-medium">
-            KitaHack 2026 | 拍账单 · 懂你所需 · 智能援助匹配系统
+            KitaHack 2026 | Scan Bills · Intelligent Aid Matching System
           </p>
         </div>
 
         {/* 输入卡片 */}
         <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-xl border border-white/50">
           <label className="block text-gray-700 font-semibold mb-3 text-lg">
-            请描述您目前的困境, 或直接上传账单/催款信 📸：
+            Describe your situation or upload a bill/notice 📸:
           </label>
           <textarea
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
-            placeholder="输入您的情况..."
+            placeholder="E.g., I lost my job and have two children..."
             className="w-full h-24 p-4 rounded-2xl bg-gray-50 border border-gray-200 focus:border-indigo-500 transition-all resize-none text-gray-800 text-lg mb-4"
           />
           <div className="flex items-center gap-4 mb-4">
             <label className="cursor-pointer bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold py-2 px-4 rounded-xl transition-all flex items-center gap-2">
-              <span>📷 拍照 / 选图</span>
+              <span>📷 Take Photo / Upload</span>
               <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
             </label>
             {imageBase64 && (
               <div className="text-sm text-green-600 font-semibold flex items-center gap-1">
-                ✅ 图片已上传
+                ✅ Image Uploaded
                 <button onClick={() => setImageBase64(null)} className="text-red-500 ml-2 hover:underline">删除</button>
               </div>
             )}
@@ -90,26 +90,26 @@ export default function Home() {
             className={`mt-4 w-full py-4 rounded-2xl font-bold text-lg text-white transition-all shadow-md 
               ${isLoading || (!userInput && !imageBase64) ? 'bg-indigo-300 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-lg hover:-translate-y-1'}`}
           >
-            {isLoading ? '🧠 AI 正在极速分析中...' : '✨ 一键匹配援助资源'}
+            {isLoading ? '🧠 AI is analyzing...' : '✨ Match Aid Resources'}
           </button>
         </div>
 
         {/* 结果展示区 */}
         {results && (
           <div className="space-y-6 animate-fade-in-up">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4 px-2">🎯 最佳匹配方案：</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4 px-2">🎯 Recommended Solutions:</h2>
             <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string}>
               {results.map((item: any, index: number) => (
                 <div key={index} className="bg-white rounded-3xl p-6 shadow-xl border-l-8 border-indigo-500 flex flex-col gap-4">
                   <div className="flex justify-between items-start">
                     <h3 className="text-xl font-bold text-gray-900">{item.name}</h3>
                     <span className="bg-green-100 text-green-800 text-sm font-bold px-3 py-1 rounded-full whitespace-nowrap">
-                      {item.confidence}% 匹配
+                      {item.confidence}% Match
                     </span>
                   </div>
                   
                   <p className="text-gray-600 leading-relaxed">
-                    <span className="font-semibold text-indigo-600">推荐理由：</span>{item.reason}
+                    <span className="font-semibold text-indigo-600">Why Recommend: </span>{item.reason}
                   </p>
 
                   {/* 📍 嵌入地图展示最近办理点 */}
@@ -133,7 +133,7 @@ export default function Home() {
                       rel="noopener noreferrer"
                       className="text-sm font-semibold text-gray-500 hover:text-indigo-600 p-2"
                     >
-                      📍 导航去这里
+                      📍 Navigate to Center
                     </a>
                     {item.application_url && (
                       <a
@@ -142,7 +142,7 @@ export default function Home() {
                         rel="noopener noreferrer"
                         className="bg-indigo-600 text-white font-bold px-6 py-2 rounded-xl hover:bg-indigo-700 transition-all shadow-md"
                       >
-                        前往申请官网 ➔
+                        Apply Now ➔
                       </a>
                     )}
                   </div>
