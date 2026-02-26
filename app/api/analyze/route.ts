@@ -1,0 +1,87 @@
+import { NextResponse } from "next/server";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { db } from "@/lib/firebase"; // 引入你之前的 Firebase 实例
+import { collection, getDocs } from "firebase/firestore";
+
+// 初始化 Gemini
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string);
+
+export async function POST(req: Request) {
+  try {
+    const { userInput, imageBase64 } = await req.json();
+
+    if (imageBase64) {
+      console.log("📸 接收到图片数据，长度为:", imageBase64.length);
+    }
+
+    // 1. 从 Firestore 获取最新的援助资源库数据
+    const resourcesCol = collection(db, "resources");
+    const resourceSnapshot = await getDocs(resourcesCol);
+    const database = resourceSnapshot.docs.map(doc => doc.data());
+
+    // 2. 选择 Gemini 1.5 Flash 模型 (速度最快，适合黑客松 Demo)
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+    // 3. 编写给 AI 的系统级指令 (In-Context Learning)
+    const prompt = `
+      你是一个专业的马来西亚 B40 弱势群体援助匹配助手。
+      如果用户提供了一张图片，请仔细读取图片中的文字和信息（例如它是否是一张医药费账单、水费欠款单、学校收费单等），
+      并结合用户的文字描述（如果有），从我提供的【援助资源数据库】中，挑选出最匹配的 1 到 3 个援助项目。
+
+      【援助资源数据库】:
+      ${JSON.stringify(database)}
+
+      用户的文字描述是: "${userInput || "无文字描述，请看图片"}"
+
+      请严格按照以下 JSON 格式输出结果，不要包含任何 markdown 标记或额外的解释文本：
+      {
+        "matches": [
+          {
+            "id": "匹配的资源id",
+            "name": "援助项目名称",
+            "reason": "用充满同理心且易懂的马来西亚语或中文解释为什么推荐这个项目（例如：‘检测到您有孩子且属于低收入，这个计划能帮到您’）",
+            "confidence": 95,
+            "application_url": "该援助项目的申请网址"
+            "lat": 3.1412,  
+            "lng": 101.6865
+          }
+        ]
+      }
+    `;
+
+    // 核心多模态逻辑：判断是否有图片，如果有，按格式装载
+    let promptParts: any[] = [{ text: prompt }];
+
+    if (imageBase64) {
+      // 去除前面的 "data:image/jpeg;base64," 标头，只保留纯数据
+      const base64Data = imageBase64.split(",")[1]; 
+      const mimeType = imageBase64.split(";")[0].split(":")[1] || "image/jpeg";
+      
+      promptParts.push({
+        inlineData: {
+          data: base64Data,
+          mimeType: mimeType,
+        },
+      });
+    }
+
+    // 4. 请求 AI 并在设定中强制要求返回 JSON
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: promptParts }],
+      generationConfig: {
+        responseMimeType: "application/json", // 强制输出 JSON 格式，Hackathon 必备防翻车技巧！
+      },
+    });
+
+    let responseText = result.response.text();
+    // 自动剥离可能带有的 markdown 标记，防止 JSON.parse 报错
+    responseText = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
+    const aiData = JSON.parse(responseText);
+
+    return NextResponse.json({ success: true, data: aiData });
+
+  } catch (error) {
+    console.error("AI 分析出错:", error);
+    return NextResponse.json({ success: false, error: "AI 分析失败" }, { status: 500 });
+  }
+}

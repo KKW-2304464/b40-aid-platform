@@ -1,65 +1,157 @@
-import Image from "next/image";
+'use client';
+
+import { useState } from 'react';
+import { APIProvider, Map, Marker } from '@vis.gl/react-google-maps';
 
 export default function Home() {
+  const [userInput, setUserInput] = useState('');
+  const [imageBase64, setImageBase64] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [results, setResults] = useState<any>(null);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImageBase64(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAnalyze = async () => {
+    if (!userInput.trim() && !imageBase64) return;
+    
+    setIsLoading(true);
+    setResults(null);
+
+    try {
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userInput, imageBase64 }),
+      });
+      
+      const data = await res.json();
+      if (data.success) {
+        setResults(data.data.matches);
+      } else {
+        alert("分析失败，请重试！");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("网络错误");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6 md:p-12 font-sans">
+      <div className="max-w-3xl mx-auto space-y-8">
+        
+        {/* 头部信息 */}
+        <div className="text-center space-y-3">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-indigo-900 tracking-tight">
+            Bantu<span className="text-blue-600">AI</span> 🤝
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-lg text-indigo-700 font-medium">
+            KitaHack 2026 | 拍账单 · 懂你所需 · 智能援助匹配系统
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        {/* 输入卡片 */}
+        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-xl border border-white/50">
+          <label className="block text-gray-700 font-semibold mb-3 text-lg">
+            请描述您目前的困境, 或直接上传账单/催款信 📸：
+          </label>
+          <textarea
+            value={userInput}
+            onChange={(e) => setUserInput(e.target.value)}
+            placeholder="输入您的情况..."
+            className="w-full h-24 p-4 rounded-2xl bg-gray-50 border border-gray-200 focus:border-indigo-500 transition-all resize-none text-gray-800 text-lg mb-4"
+          />
+          <div className="flex items-center gap-4 mb-4">
+            <label className="cursor-pointer bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold py-2 px-4 rounded-xl transition-all flex items-center gap-2">
+              <span>📷 拍照 / 选图</span>
+              <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+            </label>
+            {imageBase64 && (
+              <div className="text-sm text-green-600 font-semibold flex items-center gap-1">
+                ✅ 图片已上传
+                <button onClick={() => setImageBase64(null)} className="text-red-500 ml-2 hover:underline">删除</button>
+              </div>
+            )}
+          </div>
+          <button
+            onClick={handleAnalyze}
+            disabled={isLoading || (!userInput && !imageBase64)}
+            className={`mt-4 w-full py-4 rounded-2xl font-bold text-lg text-white transition-all shadow-md 
+              ${isLoading || (!userInput && !imageBase64) ? 'bg-indigo-300 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-lg hover:-translate-y-1'}`}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            {isLoading ? '🧠 AI 正在极速分析中...' : '✨ 一键匹配援助资源'}
+          </button>
         </div>
-      </main>
+
+        {/* 结果展示区 */}
+        {results && (
+          <div className="space-y-6 animate-fade-in-up">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4 px-2">🎯 最佳匹配方案：</h2>
+            <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string}>
+              {results.map((item: any, index: number) => (
+                <div key={index} className="bg-white rounded-3xl p-6 shadow-xl border-l-8 border-indigo-500 flex flex-col gap-4">
+                  <div className="flex justify-between items-start">
+                    <h3 className="text-xl font-bold text-gray-900">{item.name}</h3>
+                    <span className="bg-green-100 text-green-800 text-sm font-bold px-3 py-1 rounded-full whitespace-nowrap">
+                      {item.confidence}% 匹配
+                    </span>
+                  </div>
+                  
+                  <p className="text-gray-600 leading-relaxed">
+                    <span className="font-semibold text-indigo-600">推荐理由：</span>{item.reason}
+                  </p>
+
+                  {/* 📍 嵌入地图展示最近办理点 */}
+                  {item.lat && item.lng && (
+                    <div className="w-full h-48 rounded-2xl overflow-hidden shadow-inner border border-gray-100">
+                      <Map
+                        defaultCenter={{ lat: item.lat, lng: item.lng }}
+                        defaultZoom={13}
+                        gestureHandling={'greedy'}
+                        disableDefaultUI={true}
+                      >
+                        <Marker position={{ lat: item.lat, lng: item.lng }} />
+                      </Map>
+                    </div>
+                  )}
+
+                  <div className="flex justify-end gap-3 mt-2">
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${item.lat},${item.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-semibold text-gray-500 hover:text-indigo-600 p-2"
+                    >
+                      📍 导航去这里
+                    </a>
+                    {item.application_url && (
+                      <a
+                        href={item.application_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-indigo-600 text-white font-bold px-6 py-2 rounded-xl hover:bg-indigo-700 transition-all shadow-md"
+                      >
+                        前往申请官网 ➔
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </APIProvider>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
