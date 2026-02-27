@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     const database = resourceSnapshot.docs.map(doc => doc.data());
 
     // 2. 选择 Gemini 1.5 Flash 模型 (速度最快，适合黑客松 Demo)
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     // 3. 编写给 AI 的系统级指令 (In-Context Learning)
     const prompt = `
