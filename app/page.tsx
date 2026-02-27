@@ -80,7 +80,7 @@ export default function Home() {
             {imageBase64 && (
               <div className="text-sm text-green-600 font-semibold flex items-center gap-1">
                 ✅ Image Uploaded
-                <button onClick={() => setImageBase64(null)} className="text-red-500 ml-2 hover:underline">删除</button>
+                <button onClick={() => setImageBase64(null)} className="text-red-500 ml-2 hover:underline">Delete</button>
               </div>
             )}
           </div>
