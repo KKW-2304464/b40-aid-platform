@@ -68,24 +68,26 @@ To run this project locally, follow these steps:
 
 Clone the Repo:
 
-Bash
 git clone https://github.com/KKW-2304464/b40-aid-platform.git
 cd b40-aid-platform
+
 Install Dependencies:
 
-Bash
 npm install
+
 Environment Variables:
 Create a .env.local file and add your keys:
 
 GEMINI_API_KEY=your_key_here
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_key_here
 FIREBASE_CONFIG=your_config_json
+
 Run Development Server:
 
-Bash
 npm run dev
+
 8. Future Roadmap
+
 0-6 Months: Expand the Firestore database to cover 100+ verified NGOs and Zakat funds across all 13 states.
 
 6-12 Months: Launch a BantuAI WhatsApp Bot using Firebase Cloud Functions to assist users with low-end mobile devices.
