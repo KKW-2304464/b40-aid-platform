@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { db } from "@/lib/firebase"; // 引入你之前的 Firebase 实例
+import { db } from "@/lib/firebase"; 
 import { collection, getDocs } from "firebase/firestore";
 
-// 初始化 Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string);
 
 export async function POST(req: Request) {
@@ -11,18 +10,15 @@ export async function POST(req: Request) {
     const { userInput, imageBase64 } = await req.json();
 
     if (imageBase64) {
-      console.log("📸 接收到图片数据，长度为:", imageBase64.length);
+      console.log("📸 Receive photo, length:", imageBase64.length);
     }
 
-    // 1. 从 Firestore 获取最新的援助资源库数据
     const resourcesCol = collection(db, "resources");
     const resourceSnapshot = await getDocs(resourcesCol);
     const database = resourceSnapshot.docs.map(doc => doc.data());
 
-    // 2. 选择 Gemini 1.5 Flash 模型 (速度最快，适合黑客松 Demo)
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    // 3. 编写给 AI 的系统级指令 (In-Context Learning)
     const prompt = `
       You are a professional Malaysian B40 aid matching assistant. 
       
@@ -53,11 +49,9 @@ export async function POST(req: Request) {
       }
     `;
 
-    // 核心多模态逻辑：判断是否有图片，如果有，按格式装载
     let promptParts: any[] = [{ text: prompt }];
 
     if (imageBase64) {
-      // 去除前面的 "data:image/jpeg;base64," 标头，只保留纯数据
       const base64Data = imageBase64.split(",")[1]; 
       const mimeType = imageBase64.split(";")[0].split(":")[1] || "image/jpeg";
       
@@ -69,23 +63,21 @@ export async function POST(req: Request) {
       });
     }
 
-    // 4. 请求 AI 并在设定中强制要求返回 JSON
     const result = await model.generateContent({
       contents: [{ role: "user", parts: promptParts }],
       generationConfig: {
-        responseMimeType: "application/json", // 强制输出 JSON 格式，Hackathon 必备防翻车技巧！
+        responseMimeType: "application/json", 
       },
     });
 
     let responseText = result.response.text();
-    // 自动剥离可能带有的 markdown 标记，防止 JSON.parse 报错
     responseText = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
     const aiData = JSON.parse(responseText);
 
     return NextResponse.json({ success: true, data: aiData });
 
   } catch (error) {
-    console.error("AI 分析出错:", error);
-    return NextResponse.json({ success: false, error: "AI 分析失败" }, { status: 500 });
+    console.error("AI Analysis Error:", error);
+    return NextResponse.json({ success: false, error: "AI Analysis Failed" }, { status: 500 });
   }
 }

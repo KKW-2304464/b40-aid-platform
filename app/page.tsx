@@ -51,7 +51,6 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6 md:p-12 font-sans">
       <div className="max-w-3xl mx-auto space-y-8">
         
-        {/* 头部信息 */}
         <div className="text-center space-y-3">
           <h1 className="text-4xl md:text-5xl font-extrabold text-indigo-900 tracking-tight">
             Bantu<span className="text-blue-600">AI</span> 🤝
@@ -61,7 +60,6 @@ export default function Home() {
           </p>
         </div>
 
-        {/* 输入卡片 */}
         <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-xl border border-white/50">
           <label className="block text-gray-700 font-semibold mb-3 text-lg">
             Describe your situation or upload a bill/notice 📸:
@@ -94,7 +92,6 @@ export default function Home() {
           </button>
         </div>
 
-        {/* 结果展示区 */}
         {results && (
           <div className="space-y-6 animate-fade-in-up">
             <h2 className="text-2xl font-bold text-gray-800 mb-4 px-2">🎯 Recommended Solutions:</h2>
@@ -112,7 +109,6 @@ export default function Home() {
                     <span className="font-semibold text-indigo-600">Why Recommend: </span>{item.reason}
                   </p>
 
-                  {/* 📍 嵌入地图展示最近办理点 */}
                   {item.lat && item.lng && (
                     <div className="w-full h-48 rounded-2xl overflow-hidden shadow-inner border border-gray-100">
                       <Map
