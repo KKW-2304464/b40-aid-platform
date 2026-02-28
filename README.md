@@ -76,11 +76,17 @@ Install Dependencies:
 npm install
 
 Environment Variables:
+
 Create a .env.local file and add your keys:
 
 GEMINI_API_KEY=your_key_here
+NEXT_PUBLIC_FIREBASE_API_KEY=your_key_here
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_key_here
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_key_here
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_key_here
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_key_here
+NEXT_PUBLIC_FIREBASE_APP_ID=your_key_here
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_key_here
-FIREBASE_CONFIG=your_config_json
 
 Run Development Server:
 
